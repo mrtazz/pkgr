@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func addFile(tw *tar.Writer, path string) error {
@@ -33,10 +34,10 @@ func addFile(tw *tar.Writer, path string) error {
 	return nil
 }
 
-// Archive creates a gzip compressed tar archive of the given list of files
-func Archive() {
+// Archive creates a gzip compressed tar archive of the given directory
+func Archive(tarball, dir string) {
 	// set up the output file
-	file, err := os.Create("output.tar.gz")
+	file, err := os.Create(tarball)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -47,9 +48,13 @@ func Archive() {
 	tw := tar.NewWriter(gw)
 	defer tw.Close()
 	// grab the paths that need to be added in
-	paths := []string{
-		"readme.txt",
-	}
+	paths := make([]string, 0, 10)
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			paths = append(paths, path)
+		}
+		return nil
+	})
 	// add each file as needed into the current tar archive
 	for i := range paths {
 		if err := addFile(tw, paths[i]); err != nil {
