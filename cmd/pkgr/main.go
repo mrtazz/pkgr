@@ -27,7 +27,11 @@ func main() {
 		os.Exit(0)
 	}
 	m, err := manifest.FromFile(opts.Path + "/+MANIFEST")
-	archiver.Archive(opts.Path)
+	if err != nil {
+		log.Printf("Unable to load manifest: %s", err.Error())
+		os.Exit(1)
+	}
+	archiver.Archive(fmt.Sprintf("%s-%s.tar.gz", m.Name, m.Version), opts.Path)
 }
 
 func parseOpts() *options {
