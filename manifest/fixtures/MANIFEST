@@ -1,0 +1,8 @@
+{
+  "name": "pkgr",
+  "version": "0.1.0-1",
+  "comment": "create pkgng packages from directory",
+  "desc": "create pkgng packages from directory",
+  "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>",
+  "www": "https://github.com/mrtazz/pkgr"
+}

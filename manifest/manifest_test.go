@@ -6,7 +6,7 @@ import (
 )
 
 func TestSha256Sum(t *testing.T) {
-	shasum, err := sha256sum("checksum.test")
+	shasum, err := sha256sum("fixtures/checksum.test")
 	assert.Equal(t, nil, err, "shasum should have worked")
 	assert.Equal(t, "157925f6a0219aeeffb73f428fa36f79a8ba91bb226f623ff861778432f7810f", shasum, "shasum should be correct")
 
@@ -17,8 +17,15 @@ func TestSha256Sum(t *testing.T) {
 }
 
 func TestFreeBSDMajorVersion(t *testing.T) {
-	FreeBSDVersionCommand = "./fake-freebsd-version.sh"
+	FreeBSDVersionCommand = "./fixtures/fake-freebsd-version.sh"
 	version, err := getFreeBSDMajorVersion()
 	assert.Equal(t, nil, err, "version parsing should have worked")
 	assert.Equal(t, "11", version, "version should be 11")
+}
+
+func TestFromFile(t *testing.T) {
+	FreeBSDVersionCommand = "./fixtures/fake-freebsd-version.sh"
+	m, err := FromFile("fixtures/MANIFEST")
+	assert.Equal(t, nil, err, "reading manifest from file should have worked")
+	assert.Equal(t, "pkgr", m.Name, "manifest name should be pkgr")
 }
