@@ -3,26 +3,29 @@ package manifest
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"gopkg.in/yaml.v2"
+	"fmt"
+	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 // Manifest represents a +MANIFEST file
 type Manifest struct {
-	Arch       string
-	Name       string
-	Version    string
-	Comment    string
-	Desc       string
-	Origin     string
-	Maintainer string
-	WWW        string
-	Prefix     string
-	Files      map[string]string
-	Scripts    map[string]string
+	Arch       string            `json:"arch"`
+	Name       string            `json:"name"`
+	Version    string            `json:"version"`
+	Comment    string            `json:"comment"`
+	Desc       string            `json:"desc"`
+	Origin     string            `json:"origin"`
+	Maintainer string            `json:"maintainer"`
+	WWW        string            `json:"www"`
+	Prefix     string            `json:"prefix"`
+	Files      map[string]string `json:"files,omitempty"`
+	Scripts    map[string]string `json:"scripts,omitempty"`
 }
 
 // FromFile reads a manifest from a file on disk
@@ -35,6 +38,10 @@ func FromFile(path string) (*Manifest, error) {
 
 	err = yaml.Unmarshal(data, ret)
 
+	ret.Origin = fmt.Sprintf("pkgr/%s", ret.Name)
+	ret.Arch = fmt.Sprintf("%s:%s:%s", runtime.GOOS, "11", runtime.GOARCH)
+	ret.Prefix = "/"
+
 	return ret, err
 }
 
@@ -44,19 +51,39 @@ func (m *Manifest) Write(path string) error {
 	if err != nil {
 		return err
 	}
+	data, err = yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, []byte(data), 0640)
+}
+
+func (m *Manifest) WriteCompact(path string) error {
+	data, err := yaml.Marshal(m)
+	if err != nil {
+		return err
+	}
+	data, err = yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
 	return ioutil.WriteFile(path, []byte(data), 0640)
 }
 
 // AddFilesFromDir adds files from a directory to the manifest data
 func (m *Manifest) AddFilesFromDir(path string) error {
+	m.Files = make(map[string]string)
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if strings.Contains(path, "MANIFEST") {
+			return nil
+		}
 		if !info.IsDir() {
 			chksum, err := sha256sum(path)
 			if err != nil {
 				log.Printf("Unable to get checksum for %s: %s", path, err.Error())
 				return nil
 			}
-			m.Files[path] = chksum
+			m.Files[fmt.Sprintf("/%s", path)] = chksum
 		}
 		return nil
 	})
