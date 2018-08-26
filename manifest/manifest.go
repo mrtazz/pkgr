@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+var (
+	// FreeBSDVersionCommand can be changed for unit test mocks
+	FreeBSDVersionCommand = "/bin/freebsd-version"
+)
+
 // Manifest represents a +MANIFEST file
 type Manifest struct {
 	Arch       string            `json:"arch"`
@@ -104,7 +109,7 @@ func sha256sum(file string) (string, error) {
 }
 
 func getFreeBSDMajorVersion() (string, error) {
-	cmd := exec.Command("/bin/freebsd-version")
+	cmd := exec.Command(FreeBSDVersionCommand)
 	cmd.Stdin = strings.NewReader("")
 	var out bytes.Buffer
 	var stderr bytes.Buffer
