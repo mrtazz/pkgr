@@ -43,35 +43,29 @@ func main() {
 		log.Printf("Unable to load manifest: %s", err.Error())
 		os.Exit(1)
 	}
-	err = m.Write(COMPACT_MANIFEST)
-	if err != nil {
+	if err = m.Write(COMPACT_MANIFEST); err != nil {
 		log.Printf("Unable to write compact manifest: %s", err.Error())
 		os.Exit(1)
 	}
-	err = m.AddFilesFromDir(opts.Path)
-	if err != nil {
+	if err = m.AddFilesFromDir(opts.Path); err != nil {
 		log.Printf("Unable to load files from dir: %s", err.Error())
 		os.Exit(1)
 	}
-	err = m.Write(MANIFEST)
-	if err != nil {
+	if err = m.Write(MANIFEST); err != nil {
 		log.Printf("Unable to write manifest: %s", err.Error())
 		os.Exit(1)
 	}
-	err = archiver.Archive(fmt.Sprintf("%s-%s.txz", m.Name, m.Version), opts.Path)
-	if err != nil {
+	if err = archiver.Archive(fmt.Sprintf("%s-%s.txz", m.Name, m.Version), opts.Path); err != nil {
 		fmt.Printf("Unable to write package archive: %s", err.Error())
 		os.Exit(1)
 	}
 
 	// clean up generated files
-	err = os.Remove(COMPACT_MANIFEST)
-	if err != nil {
+	if err = os.Remove(COMPACT_MANIFEST); err != nil {
 		fmt.Printf("Unable to remove compact manifest: %s", err.Error())
 		os.Exit(1)
 	}
-	err = os.Remove(MANIFEST)
-	if err != nil {
+	if err = os.Remove(MANIFEST); err != nil {
 		fmt.Printf("Unable to remove manifest: %s", err.Error())
 		os.Exit(1)
 	}
@@ -88,14 +82,11 @@ func parseOpts() *options {
 }
 
 func validateOpts(opts *options) error {
-
 	if opts.Path == "" {
 		return fmt.Errorf("Please provide a directory to package.")
 	}
-
 	if opts.Manifest == "" {
 		return fmt.Errorf("Please provide a manifest.")
 	}
-
 	return nil
 }
