@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -39,8 +41,12 @@ func FromFile(path string) (*Manifest, error) {
 	err = yaml.Unmarshal(data, ret)
 
 	ret.Origin = fmt.Sprintf("pkgr/%s", ret.Name)
-	ret.Arch = fmt.Sprintf("%s:%s:%s", runtime.GOOS, "11", runtime.GOARCH)
 	ret.Prefix = "/"
+	version, err := getFreeBSDMajorVersion()
+	if err != nil {
+		return ret, err
+	}
+	ret.Arch = fmt.Sprintf("%s:%s:%s", runtime.GOOS, version, runtime.GOARCH)
 
 	return ret, err
 }
@@ -74,9 +80,6 @@ func (m *Manifest) WriteCompact(path string) error {
 func (m *Manifest) AddFilesFromDir(path string) error {
 	m.Files = make(map[string]string)
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if strings.Contains(path, "MANIFEST") {
-			return nil
-		}
 		if !info.IsDir() {
 			chksum, err := sha256sum(path)
 			if err != nil {
@@ -98,4 +101,18 @@ func sha256sum(file string) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+func getFreeBSDMajorVersion() (string, error) {
+	cmd := exec.Command("/bin/freebsd-version")
+	cmd.Stdin = strings.NewReader("")
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	return out.String()[0:2], nil
 }
