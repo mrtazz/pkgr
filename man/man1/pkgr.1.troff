@@ -1,4 +1,4 @@
-.TH pkgr 1 "31 Aug 2018" FreeBSD "User Manuals"
+.TH pkgr 1 "REPLACE_DATE" FreeBSD "User Manuals"
 .SH NAME
 pkgr \- build pkgng packages from a directory
 .SH SYNOPSIS

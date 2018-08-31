@@ -24,11 +24,11 @@ PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
 CMD_SOURCES := $(shell find cmd -name main.go)
 TARGETS := $(patsubst cmd/%/main.go,%,$(CMD_SOURCES))
-MAN_SOURCES := $(shell find man -name "*.md")
-MAN_TARGETS := $(patsubst man/man1/%.md,%,$(MAN_SOURCES))
+MAN_SOURCES := $(shell find man -name "*.troff")
+MAN_TARGETS := $(patsubst man/man1/%.troff,%,$(MAN_SOURCES))
 
 INSTALLED_TARGETS = $(addprefix $(PREFIX)/bin/, $(TARGETS))
-INSTALLED_MAN_TARGETS = $(addprefix $(PREFIX)/share/man/man1/, $(MAN_TARGETS))
+INSTALLED_MAN_TARGETS = $(addprefix $(PREFIX)/man/man1/, $(MAN_TARGETS))
 
 # source, dependency and build definitions
 DEPDIR = .d
@@ -46,8 +46,8 @@ $(DEPDIR):
 	$(MAKEDEPEND)
 	go build -ldflags "$(LDFLAGS)" -o $@ $<
 
-%.1: man/man1/%.1.md
-	sed "s/REPLACE_DATE/$(BUILDDATE)/" $< | pandoc -s -t man -o $@
+%.1: man/man1/%.1.troff
+	sed "s/REPLACE_DATE/$(BUILDDATE)/" $< > $@
 
 all: $(TARGETS) $(MAN_TARGETS)
 .DEFAULT_GOAL:=all
@@ -78,7 +78,7 @@ $(PREFIX)/bin/%: %
 	install -d $$(dirname $@)
 	install -m 755 $< $@
 
-$(PREFIX)/share/man/man1/%: %
+$(PREFIX)/man/man1/%: %
 	install -d $$(dirname $@)
 	install -m 644 $< $@
 
