@@ -1,0 +1,20 @@
+.TH pkgr 1 "31 Aug 2018" FreeBSD "User Manuals"
+.SH NAME
+pkgr \- build pkgng packages from a directory
+.SH SYNOPSIS
+.PP
+.B pkgr
+--manifest MANIFEST --path usr/
+.SH DESCRIPTION
+pkgr takes a manifest file written in YAML with basic package metadata and a
+path to a directory. It then creates a pkgng package in txz format with that
+manifest containing all files in the given path.
+.SH OPTIONS
+.PP
+.IP "--manifest \fIMANIFEST\fP"
+Use the given manifest as basic metadata for the package.
+.IP "--path \fIdirectory\fP"
+Package all files in \fIdirectory\fP into the package.
+.PP
+.SH "SEE ALSO"
+pkg(1), fpm(1)
