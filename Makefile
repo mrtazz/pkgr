@@ -18,6 +18,8 @@ LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.goversion=$(GOVERSION)'
 GOFLAGS := -mod=vendor
 
+PKGNG_ARCH ?= ""
+
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
 CMD_SOURCES := $(shell find cmd -name main.go)
@@ -29,7 +31,7 @@ INSTALLED_TARGETS = $(addprefix $(PREFIX)/bin/, $(TARGETS))
 INSTALLED_MAN_TARGETS = $(addprefix $(PREFIX)/man/man1/, $(MAN_TARGETS))
 
 MANIFEST:
-	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr" }' > MANIFEST.json
+	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr", "arch": "$(PKGNG_ARCH)" }' > MANIFEST
 
 %: cmd/%/main.go
 	go build -ldflags "$(LDFLAGS)" -o $@ $<
