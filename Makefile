@@ -77,15 +77,11 @@ local-install:
 # packaging tasks
 packages: local-install rpm deb
 
-deploy-packages: packages
-	package_cloud push mrtazz/$(NAME)/el/7 *.rpm
-	package_cloud push mrtazz/$(NAME)/debian/wheezy *.deb
-	package_cloud push mrtazz/$(NAME)/ubuntu/trusty *.deb
-
 
 clean: clean-docs
 	$(RM) -r ./usr
 	$(RM) $(TARGETS)
+	$(RM) MANIFEST
 
 clean-docs:
 	$(RM) $(MAN_TARGETS)
