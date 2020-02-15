@@ -43,6 +43,9 @@ $(DEPDIR):
 
 -include $(patsubst %,$(DEPDIR)/%.d,$(TARGETS))
 
+MANIFEST:
+	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr" }' > MANIFEST
+
 %: cmd/%/main.go $(DEPDIR) $(DEPDIR)/%.d
 	$(MAKEDEPEND)
 	go build -ldflags "$(LDFLAGS)" -o $@ $<
