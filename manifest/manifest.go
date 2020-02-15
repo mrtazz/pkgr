@@ -47,11 +47,13 @@ func FromFile(path string) (*Manifest, error) {
 
 	ret.Origin = fmt.Sprintf("pkgr/%s", ret.Name)
 	ret.Prefix = "/"
-	version, err := getFreeBSDMajorVersion()
-	if err != nil {
-		return ret, err
+	if ret.Arch == "" {
+		version, err := getFreeBSDMajorVersion()
+		if err != nil {
+			return ret, err
+		}
+		ret.Arch = fmt.Sprintf("%s:%s:%s", runtime.GOOS, version, runtime.GOARCH)
 	}
-	ret.Arch = fmt.Sprintf("%s:%s:%s", runtime.GOOS, version, runtime.GOARCH)
 
 	return ret, err
 }
@@ -69,6 +71,7 @@ func (m *Manifest) Write(path string) error {
 	return ioutil.WriteFile(path, []byte(data), 0640)
 }
 
+// WriteCompact outputs a compact manifest
 func (m *Manifest) WriteCompact(path string) error {
 	data, err := yaml.Marshal(m)
 	if err != nil {
