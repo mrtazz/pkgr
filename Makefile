@@ -18,7 +18,7 @@ LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.goversion=$(GOVERSION)'
 GOFLAGS := -mod=vendor
 
-PKGNG_ARCH ?= ""
+PKGNG_ARCH ?=
 
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
