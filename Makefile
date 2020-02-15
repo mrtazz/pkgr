@@ -2,8 +2,6 @@
 # some housekeeping tasks
 #
 
-export GO15VENDOREXPERIMENT = 1
-
 # variable definitions
 NAME := pkgr
 DESC := FreeBSD pkg creation tool
@@ -22,7 +20,6 @@ GOFLAGS := -mod=vendor
 
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
-
 CMD_SOURCES := $(shell find cmd -name main.go)
 TARGETS := $(patsubst cmd/%/main.go,%,$(CMD_SOURCES))
 MAN_SOURCES := $(shell find man -name "*.troff")
@@ -31,23 +28,10 @@ MAN_TARGETS := $(patsubst man/man1/%.troff,%,$(MAN_SOURCES))
 INSTALLED_TARGETS = $(addprefix $(PREFIX)/bin/, $(TARGETS))
 INSTALLED_MAN_TARGETS = $(addprefix $(PREFIX)/man/man1/, $(MAN_TARGETS))
 
-# source, dependency and build definitions
-DEPDIR = .d
-MAKEDEPEND = echo "$@: $$(go list -f '{{ join .Deps "\n" }}' $< | awk '/github/ { gsub(/^github.com\/[a-z_-]*\/[a-z_-]*\//, ""); printf $$0"/*.go " }')" > $(DEPDIR)/$@.d
-
-$(DEPDIR)/%.d: ;
-.PRECIOUS: $(DEPDIR)/%.d
-
-$(DEPDIR):
-	install -d $@
-
--include $(patsubst %,$(DEPDIR)/%.d,$(TARGETS))
-
 MANIFEST:
-	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr" }' > MANIFEST
+	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr" }' > MANIFEST.json
 
-%: cmd/%/main.go $(DEPDIR) $(DEPDIR)/%.d
-	$(MAKEDEPEND)
+%: cmd/%/main.go
 	go build -ldflags "$(LDFLAGS)" -o $@ $<
 
 %.1: man/man1/%.1.troff
@@ -74,9 +58,6 @@ benchmark:
 	@echo "Running tests..."
 	@go test -bench=. ${NAME}
 
-govendor:
-	    go get -u github.com/kardianos/govendor
-
 # install tasks
 $(PREFIX)/bin/%: %
 	install -d $$(dirname $@)
@@ -100,49 +81,11 @@ deploy-packages: packages
 	package_cloud push mrtazz/$(NAME)/ubuntu/trusty *.deb
 
 
-rpm: $(SOURCES)
-	  fpm -t rpm -s dir \
-    --name $(NAME) \
-    --version $(VERSION) \
-		--description "$(DESC)" \
-    --iteration $(PKG_RELEASE) \
-    --epoch 1 \
-    --license MIT \
-    --maintainer "Daniel Schauenberg <d@unwiredcouch.com>" \
-    --url $(PROJECT_URL) \
-    --vendor mrtazz \
-    usr
-
-deb: $(SOURCES)
-	  fpm -t deb -s dir \
-    --name $(NAME) \
-    --version $(VERSION) \
-		--description "$(DESC)" \
-    --iteration $(PKG_RELEASE) \
-    --epoch 1 \
-    --license MIT \
-    --maintainer "Daniel Schauenberg <d@unwiredcouch.com>" \
-    --url $(PROJECT_URL) \
-    --vendor mrtazz \
-    usr
-
-
-# clean up tasks
-clean-deps:
-	$(RM) -r $(DEPDIR)
-
-clean: clean-docs clean-deps
+clean: clean-docs
 	$(RM) -r ./usr
 	$(RM) $(TARGETS)
 
 clean-docs:
 	$(RM) $(MAN_TARGETS)
-
-pizza:
-	@echo ""
-	@echo "🍕 🍕 🍕 🍕 🍕 🍕   make.pizza 🍕 🍕 🍕 🍕 🍕 🍕 "
-	@echo ""
-	@echo "https://twitter.com/mrb_bk/status/760636493710983168"
-	@echo ""
 
 .PHONY: all test rpm deb install local-install packages govendor coverage clean-deps clean clean-docs pizza
