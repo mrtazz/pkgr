@@ -6,7 +6,7 @@ export GO15VENDOREXPERIMENT = 1
 
 # variable definitions
 NAME := pkgr
-DESC := experimental linter for Makefiles
+DESC := FreeBSD pkg creation tool
 PREFIX ?= usr/local
 VERSION := $(shell git describe --tags --always --dirty)
 GOVERSION := $(shell go version)
@@ -18,6 +18,7 @@ PROJECT_URL := "https://github.com/mrtazz/$(NAME)"
 LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.builder=$(BUILDER)' \
            -X 'main.goversion=$(GOVERSION)'
+GOFLAGS := -mod=vendor
 
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
@@ -54,7 +55,7 @@ all: $(TARGETS) $(MAN_TARGETS)
 
 # development tasks
 test:
-	go test -v $$(go list ./... | grep -v /vendor/)
+	go test $(GOFLAGS) -v ./...
 
 coverage:
 	@echo "mode: set" > cover.out
