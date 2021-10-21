@@ -6,7 +6,7 @@ github.com/ghodss/yaml
 github.com/pmezard/go-difflib/difflib
 # github.com/stretchr/testify v1.1.4-0.20160615092844-d77da356e56a
 github.com/stretchr/testify/assert
-# github.com/ulikunitz/xz v0.5.5-0.20180703112113-636d36a76670
+# github.com/ulikunitz/xz v0.5.8
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash
 github.com/ulikunitz/xz/internal/xlog
