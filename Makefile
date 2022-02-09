@@ -16,9 +16,12 @@ PROJECT_URL := "https://github.com/mrtazz/$(NAME)"
 LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.builder=$(BUILDER)' \
            -X 'main.goversion=$(GOVERSION)'
-GOFLAGS := -mod=vendor
+BUILD_GOOS ?= $(shell go env GOOS)
+BUILD_GOARCH ?= $(shell go env GOARCH)
 
 PKGNG_ARCH ?=
+
+CHECKSUM_FILE := checksums.txt
 
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
@@ -30,11 +33,11 @@ MAN_TARGETS := $(patsubst man/man1/%.troff,%,$(MAN_SOURCES))
 INSTALLED_TARGETS = $(addprefix $(PREFIX)/bin/, $(TARGETS))
 INSTALLED_MAN_TARGETS = $(addprefix $(PREFIX)/man/man1/, $(MAN_TARGETS))
 
-MANIFEST:
-	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr", "arch": "$(PKGNG_ARCH)" }' > MANIFEST
+MANIFEST.json:
+	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr", "arch": "$(PKGNG_ARCH)" }' > $@
 
 %: cmd/%/main.go
-	go build -ldflags "$(LDFLAGS)" -o $@ $<
+	GOOS=$(BUILD_GOOS) GOARCH=$(BUILD_GOARCH) go build -ldflags "$(LDFLAGS)" -o $@ $<
 
 %.1: man/man1/%.1.troff
 	sed "s/REPLACE_DATE/$(BUILDDATE)/" $< > $@
@@ -47,13 +50,7 @@ test:
 	go test $(GOFLAGS) -v ./...
 
 coverage:
-	@echo "mode: set" > cover.out
-	@for package in $(PACKAGES); do \
-		if ls $${package}/*.go &> /dev/null; then  \
-		go test -coverprofile=$${package}/profile.out $${package}; fi; \
-		if test -f $${package}/profile.out; then \
-	 	cat $${package}/profile.out | grep -v "mode: set" >> cover.out; fi; \
-	done
+	go test $(GOFLAGS) -coverprofile=cover.out -v ./...
 	@-go tool cover -html=cover.out -o cover.html
 
 benchmark:
@@ -77,6 +74,14 @@ local-install:
 # packaging tasks
 packages: local-install rpm deb
 
+.PHONY: pkgng
+pkgng: local-install MANIFEST.json
+	GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) go run ./cmd/pkgr --manifest MANIFEST.json --path usr
+
+.PHONY: build-standalone
+build-standalone: all
+	mv pkgr pkgr-$(VERSION).$(BUILD_GOOS).$(BUILD_GOARCH)
+	shasum -a 256 pkgr-$(VERSION).$(BUILD_GOOS).$(BUILD_GOARCH) >> $(CHECKSUM_FILE)
 
 clean: clean-docs
 	$(RM) -r ./usr

@@ -1,0 +1,29 @@
+name: package release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: '*'
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+		env:
+      BUILDER: "Github Actions <noreply@github.com>"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: create packages
+      run: |
+        BUILD_GOARCH=amd64 BUILD_GOOS=freebsd make build-standalone
+        BUILD_GOARCH=amd64 BUILD_GOOS=linux   make build-standalone
+        BUILD_GOARCH=amd64 BUILD_GOOS=darwin  make build-standalone
+
+    - name: create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          'pkgr-*'
+          'pkgr.1'
+          'checksums.txt'
