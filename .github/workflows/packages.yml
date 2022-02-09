@@ -26,3 +26,4 @@ jobs:
         files: |
           'pkgr-*'
           'pkgr.1'
+          'checksums.txt'
