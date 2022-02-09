@@ -1,0 +1,23 @@
+name: package release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: '*'
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+		env:
+      BUILDER: "Github Actions <noreply@github.com>"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: create packages
+      run: GOOS=freebsd GOARCH=amd64 make pkgng
+
+    - name: create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: '*.txz'
