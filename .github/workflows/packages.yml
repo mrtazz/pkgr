@@ -1,4 +1,4 @@
-name: package release
+name: release
 
 on:
   workflow_dispatch:
@@ -7,6 +7,8 @@ on:
 
 jobs:
   packages:
+    permissions:
+        contents: write
     runs-on: ubuntu-latest
     env:
       BUILDER: "Github Actions <noreply@github.com>"
@@ -24,6 +26,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          'pkgr-*'
-          'pkgr.1'
-          'checksums.txt'
+          pkgr-*
+          pkgr.1
+          checksums.txt
