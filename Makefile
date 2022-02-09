@@ -16,10 +16,12 @@ PROJECT_URL := "https://github.com/mrtazz/$(NAME)"
 LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.builder=$(BUILDER)' \
            -X 'main.goversion=$(GOVERSION)'
-PKGNG_GOOS ?= $(shell go env GOOS)
-PKGNG_GOARCH ?= $(shell go env GOARCH)
+BUILD_GOOS ?= $(shell go env GOOS)
+BUILD_GOARCH ?= $(shell go env GOARCH)
 
 PKGNG_ARCH ?=
+
+CHECKSUM_FILE := checksums.txt
 
 PACKAGES := $(shell find ./* -type d | grep -v vendor)
 
@@ -35,7 +37,7 @@ MANIFEST.json:
 	echo '{ "name": "pkgr", "version": "$(VERSION)", "comment": "create pkgng packages from directory", "desc": "create pkgng packages from directory", "maintainer": "Daniel Schauenberg <d@unwiredcouch.com>", "www": "https://github.com/mrtazz/pkgr", "arch": "$(PKGNG_ARCH)" }' > $@
 
 %: cmd/%/main.go
-	GOOS=$(PKGNG_GOOS) GOARCH=$(PKGNG_GOARCH) go build -ldflags "$(LDFLAGS)" -o $@ $<
+	GOOS=$(BUILD_GOOS) GOARCH=$(BUILD_GOARCH) go build -ldflags "$(LDFLAGS)" -o $@ $<
 
 %.1: man/man1/%.1.troff
 	sed "s/REPLACE_DATE/$(BUILDDATE)/" $< > $@
@@ -75,6 +77,11 @@ packages: local-install rpm deb
 .PHONY: pkgng
 pkgng: local-install MANIFEST.json
 	GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) go run ./cmd/pkgr --manifest MANIFEST.json --path usr
+
+.PHONY: build-standalone
+build-standalone: all
+	mv pkgr pkgr-$(VERSION).$(BUILD_GOOS).$(BUILD_GOARCH)
+	shasum -a 256 pkgr-$(VERSION).$(BUILD_GOOS).$(BUILD_GOARCH) >> $(CHECKSUM_FILE)
 
 clean: clean-docs
 	$(RM) -r ./usr
